@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\bitstream.c" />
+    <ClCompile Include="..\common\cabac.c" />
+    <ClCompile Include="..\common\common.c" />
+    <ClCompile Include="..\common\cpu.c" />
+    <ClCompile Include="..\common\dct.c" />
+    <ClCompile Include="..\common\deblock.c" />
+    <ClCompile Include="..\common\display-x11.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\common\frame.c" />
+    <ClCompile Include="..\common\macroblock.c" />
+    <ClCompile Include="..\common\mc.c" />
+    <ClCompile Include="..\common\mvpred.c" />
+    <ClCompile Include="..\common\osdep.c" />
+    <ClCompile Include="..\common\pixel.c" />
+    <ClCompile Include="..\common\predict.c" />
+    <ClCompile Include="..\common\quant.c" />
+    <ClCompile Include="..\common\rectangle.c" />
+    <ClCompile Include="..\common\set.c" />
+    <ClCompile Include="..\common\threadpool.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\common\visualize.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\common\vlc.c" />
+    <ClCompile Include="..\common\win32thread.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\encoder\analyse.c" />
+    <ClCompile Include="..\encoder\encoder.c" />
+    <ClCompile Include="..\encoder\e_cabac.c" />
+    <ClCompile Include="..\encoder\e_cavlc.c" />
+    <ClCompile Include="..\encoder\e_macroblock.c" />
+    <ClCompile Include="..\encoder\e_set.c" />
+    <ClCompile Include="..\encoder\lookahead.c" />
+    <ClCompile Include="..\encoder\me.c" />
+    <ClCompile Include="..\encoder\ratecontrol.c" />
+    <ClCompile Include="..\encoder\rdo.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\encoder\slicetype.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\x264dll.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\bitstream.h" />
+    <ClInclude Include="..\common\cabac.h" />
+    <ClInclude Include="..\common\common.h" />
+    <ClInclude Include="..\common\cpu.h" />
+    <ClInclude Include="..\common\dct.h" />
+    <ClInclude Include="..\common\display.h" />
+    <ClInclude Include="..\common\frame.h" />
+    <ClInclude Include="..\common\macroblock.h" />
+    <ClInclude Include="..\common\mc.h" />
+    <ClInclude Include="..\common\osdep.h" />
+    <ClInclude Include="..\common\pixel.h" />
+    <ClInclude Include="..\common\quant.h" />
+    <ClInclude Include="..\common\rectangle.h" />
+    <ClInclude Include="..\common\set.h" />
+    <ClInclude Include="..\common\threadpool.h" />
+    <ClInclude Include="..\common\win32thread.h" />
+    <ClInclude Include="..\config.h" />
+    <ClInclude Include="..\encoder\analyse.h" />
+    <ClInclude Include="..\encoder\macroblock.h" />
+    <ClInclude Include="..\encoder\me.h" />
+    <ClInclude Include="..\encoder\ratecontrol.h" />
+    <ClInclude Include="..\encoder\set.h" />
+    <ClInclude Include="..\vs\inttypes.h" />
+    <ClInclude Include="..\x264.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Makefile" />
+    <None Include="..\README" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4A64F946-EBDD-4461-9D87-9E5404170E55}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>x264</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\common;$(ProjectDir)..\encoder;$(ProjectDir)..\vs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\common;$(ProjectDir)..\encoder;$(ProjectDir)..\vs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
