@@ -28,7 +28,7 @@
 #define NAME "crop"
 #define FAIL_IF_ERROR( cond, ... ) FAIL_IF_ERR( cond, NAME, __VA_ARGS__ )
 
-cli_vid_filter_t crop_filter;
+extern cli_vid_filter_t crop_filter;
 
 typedef struct
 {
@@ -50,7 +50,7 @@ static void help( int longhelp )
 static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x264_param_t *param, char *opt_string )
 {
     FAIL_IF_ERROR( x264_cli_csp_is_invalid( info->csp ), "invalid csp %d\n", info->csp )
-    crop_hnd_t *h = calloc( 1, sizeof(crop_hnd_t) );
+    crop_hnd_t *h = (crop_hnd_t *)calloc( 1, sizeof(crop_hnd_t) );
     if( !h )
         return -1;
 
@@ -96,7 +96,7 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x2
 
 static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 {
-    crop_hnd_t *h = handle;
+    crop_hnd_t *h = (crop_hnd_t *)handle;
     if( h->prev_filter.get_frame( h->prev_hnd, output, frame ) )
         return -1;
     output->img.width  = h->dims[2];
@@ -114,7 +114,7 @@ static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 
 static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 {
-    crop_hnd_t *h = handle;
+    crop_hnd_t *h = (crop_hnd_t *)handle;
     /* NO filter should ever have a dependent release based on the plane pointers,
      * so avoid unnecessary unshifting */
     return h->prev_filter.release_frame( h->prev_hnd, pic, frame );
@@ -122,7 +122,7 @@ static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 
 static void free_filter( hnd_t handle )
 {
-    crop_hnd_t *h = handle;
+    crop_hnd_t *h = (crop_hnd_t *)handle;
     h->prev_filter.free( h->prev_hnd );
     free( h );
 }

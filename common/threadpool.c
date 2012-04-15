@@ -60,14 +60,14 @@ static void x264_threadpool_thread( x264_threadpool_t *pool )
             x264_pthread_cond_wait( &pool->run.cv_fill, &pool->run.mutex );
         if( pool->run.i_size )
         {
-            job = (void*)x264_frame_shift( pool->run.list );
+            job = (x264_threadpool_job_t *)x264_frame_shift( pool->run.list );
             pool->run.i_size--;
         }
         x264_pthread_mutex_unlock( &pool->run.mutex );
         if( !job )
             continue;
         job->ret = job->func( job->arg ); /* execute the function */
-        x264_sync_frame_list_push( &pool->done, (void*)job );
+        x264_sync_frame_list_push( &pool->done, (x264_frame_t *)job );
     }
 }
 
@@ -96,10 +96,11 @@ int x264_threadpool_init( x264_threadpool_t **p_pool, int threads,
     {
        x264_threadpool_job_t *job;
        CHECKED_MALLOC( job, sizeof(x264_threadpool_job_t) );
-       x264_sync_frame_list_push( &pool->uninit, (void*)job );
+       x264_sync_frame_list_push( &pool->uninit, (x264_frame_t*)job );
     }
+    typedef void *(func_t)(void*);
     for( int i = 0; i < pool->threads; i++ )
-        if( x264_pthread_create( pool->thread_handle+i, NULL, (void*)x264_threadpool_thread, pool ) )
+        if( x264_pthread_create( pool->thread_handle+i, NULL, (func_t*)x264_threadpool_thread, pool ) )
             goto fail;
 
     return 0;
@@ -109,10 +110,10 @@ fail:
 
 void x264_threadpool_run( x264_threadpool_t *pool, void *(*func)(void *), void *arg )
 {
-    x264_threadpool_job_t *job = (void*)x264_sync_frame_list_pop( &pool->uninit );
+    x264_threadpool_job_t *job = (x264_threadpool_job_t*)x264_sync_frame_list_pop( &pool->uninit );
     job->func = func;
     job->arg  = arg;
-    x264_sync_frame_list_push( &pool->run, (void*)job );
+    x264_sync_frame_list_push( &pool->run, (x264_frame_t*)job );
 }
 
 void *x264_threadpool_wait( x264_threadpool_t *pool, void *arg )
@@ -124,10 +125,10 @@ void *x264_threadpool_wait( x264_threadpool_t *pool, void *arg )
     {
         for( int i = 0; i < pool->done.i_size; i++ )
         {
-            x264_threadpool_job_t *t = (void*)pool->done.list[i];
+            x264_threadpool_job_t *t = (x264_threadpool_job_t*)pool->done.list[i];
             if( t->arg == arg )
             {
-                job = (void*)x264_frame_shift( pool->done.list+i );
+                job = (x264_threadpool_job_t*)x264_frame_shift( pool->done.list+i );
                 pool->done.i_size--;
             }
         }
@@ -137,7 +138,7 @@ void *x264_threadpool_wait( x264_threadpool_t *pool, void *arg )
     x264_pthread_mutex_unlock( &pool->done.mutex );
 
     void *ret = job->ret;
-    x264_sync_frame_list_push( &pool->uninit, (void*)job );
+    x264_sync_frame_list_push( &pool->uninit, (x264_frame_t*)job );
     return ret;
 }
 

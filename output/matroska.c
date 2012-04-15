@@ -48,7 +48,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, cli_output_opt_t *opt
 
     *p_handle = NULL;
 
-    p_mkv  = malloc( sizeof(*p_mkv) );
+    p_mkv  = (mkv_hnd_t*)malloc( sizeof(*p_mkv) );
     if( !p_mkv )
         return -1;
 
@@ -68,7 +68,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, cli_output_opt_t *opt
 
 static int set_param( hnd_t handle, x264_param_t *p_param )
 {
-    mkv_hnd_t   *p_mkv = handle;
+    mkv_hnd_t   *p_mkv = (mkv_hnd_t*)handle;
     int64_t dw, dh;
 
     if( p_param->i_fps_num > 0 && !p_param->b_vfr_input )
@@ -108,7 +108,7 @@ static int set_param( hnd_t handle, x264_param_t *p_param )
 
 static int write_headers( hnd_t handle, x264_nal_t *p_nal )
 {
-    mkv_hnd_t *p_mkv = handle;
+    mkv_hnd_t *p_mkv = (mkv_hnd_t*)handle;
 
     int sps_size = p_nal[0].i_payload - 4;
     int pps_size = p_nal[1].i_payload - 4;
@@ -127,7 +127,7 @@ static int write_headers( hnd_t handle, x264_nal_t *p_nal )
         return -1;
 
     avcC_len = 5 + 1 + 2 + sps_size + 1 + 2 + pps_size;
-    avcC = malloc( avcC_len );
+    avcC = (uint8_t*)malloc( avcC_len );
     if( !avcC )
         return -1;
 
@@ -174,7 +174,7 @@ static int write_headers( hnd_t handle, x264_nal_t *p_nal )
 
 static int write_frame( hnd_t handle, uint8_t *p_nalu, int i_size, x264_picture_t *p_picture )
 {
-    mkv_hnd_t *p_mkv = handle;
+    mkv_hnd_t *p_mkv = (mkv_hnd_t*)handle;
 
     if( !p_mkv->b_writing_frame )
     {
@@ -198,7 +198,7 @@ static int write_frame( hnd_t handle, uint8_t *p_nalu, int i_size, x264_picture_
 
 static int close_file( hnd_t handle, int64_t largest_pts, int64_t second_largest_pts )
 {
-    mkv_hnd_t *p_mkv = handle;
+    mkv_hnd_t *p_mkv = (mkv_hnd_t*)handle;
     int ret;
     int64_t i_last_delta;
 

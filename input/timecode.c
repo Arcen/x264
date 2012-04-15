@@ -144,12 +144,12 @@ static int parse_tcfile( FILE *tcfile_in, timecode_hnd_t *h, video_info_t *info 
         timecodes_num = h->stored_pts_num;
         fseek( tcfile_in, file_pos, SEEK_SET );
 
-        timecodes = malloc( timecodes_num * sizeof(double) );
+        timecodes = (double*)malloc( timecodes_num * sizeof(double) );
         if( !timecodes )
             return -1;
         if( h->auto_timebase_den || h->auto_timebase_num )
         {
-            fpss = malloc( (seq_num + 1) * sizeof(double) );
+            fpss = (double*)malloc( (seq_num + 1) * sizeof(double) );
             if( !fpss )
                 goto fail;
         }
@@ -237,7 +237,7 @@ static int parse_tcfile( FILE *tcfile_in, timecode_hnd_t *h, video_info_t *info 
         FAIL_IF_ERROR( !timecodes_num, "input tcfile doesn't have any timecodes!\n" )
         fseek( tcfile_in, file_pos, SEEK_SET );
 
-        timecodes = malloc( timecodes_num * sizeof(double) );
+        timecodes = (double*)malloc( timecodes_num * sizeof(double) );
         if( !timecodes )
             return -1;
 
@@ -264,7 +264,7 @@ static int parse_tcfile( FILE *tcfile_in, timecode_hnd_t *h, video_info_t *info 
             h->timebase_den = info->fps_num;
         else if( h->auto_timebase_den )
         {
-            fpss = malloc( (timecodes_num - 1) * sizeof(double) );
+            fpss = (double*)malloc( (timecodes_num - 1) * sizeof(double) );
             if( !fpss )
                 goto fail;
             for( num = 0; num < timecodes_num - 1; num++ )
@@ -316,7 +316,7 @@ static int parse_tcfile( FILE *tcfile_in, timecode_hnd_t *h, video_info_t *info 
     else FAIL_IF_ERROR( h->timebase_den > UINT32_MAX || !h->timebase_den, "automatic timebase generation failed.\n"
                         "                  Specify an appropriate timebase manually.\n" )
 
-    h->pts = malloc( h->stored_pts_num * sizeof(int64_t) );
+    h->pts = (int64_t*)malloc( h->stored_pts_num * sizeof(int64_t) );
     if( !h->pts )
         goto fail;
     for( num = 0; num < h->stored_pts_num; num++ )
@@ -343,7 +343,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, c
 {
     int ret = 0;
     FILE *tcfile_in;
-    timecode_hnd_t *h = malloc( sizeof(timecode_hnd_t) );
+    timecode_hnd_t *h = (timecode_hnd_t*)malloc( sizeof(timecode_hnd_t) );
     FAIL_IF_ERROR( !h, "malloc failed\n" )
     h->input = cli_input;
     h->p_handle = *p_handle;
@@ -416,7 +416,7 @@ static int64_t get_frame_pts( timecode_hnd_t *h, int frame, int real_frame )
 
 static int read_frame( cli_pic_t *pic, hnd_t handle, int frame )
 {
-    timecode_hnd_t *h = handle;
+    timecode_hnd_t *h = (timecode_hnd_t *)handle;
     if( h->input.read_frame( pic, h->p_handle, frame ) )
         return -1;
 
@@ -428,7 +428,7 @@ static int read_frame( cli_pic_t *pic, hnd_t handle, int frame )
 
 static int release_frame( cli_pic_t *pic, hnd_t handle )
 {
-    timecode_hnd_t *h = handle;
+    timecode_hnd_t *h = (timecode_hnd_t *)handle;
     if( h->input.release_frame )
         return h->input.release_frame( pic, h->p_handle );
     return 0;
@@ -436,7 +436,7 @@ static int release_frame( cli_pic_t *pic, hnd_t handle )
 
 static int close_file( hnd_t handle )
 {
-    timecode_hnd_t *h = handle;
+    timecode_hnd_t *h = (timecode_hnd_t *)handle;
     if( h->pts )
         free( h->pts );
     h->input.close_file( h->p_handle );

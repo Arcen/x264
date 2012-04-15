@@ -298,7 +298,7 @@ static int x264_param_apply_preset( x264_param_t *param, const char *preset )
 
 static int x264_param_apply_tune( x264_param_t *param, const char *tune )
 {
-    char *tmp = x264_malloc( strlen( tune ) + 1 );
+    char *tmp = (char *)x264_malloc( strlen( tune ) + 1 );
     if( !tmp )
         return -1;
     tmp = strcpy( tmp, tune );
@@ -1095,17 +1095,18 @@ int x264_picture_alloc( x264_picture_t *pic, int i_csp, int i_width, int i_heigh
 
     static const x264_csp_tab_t x264_csp_tab[] =
     {
-        [X264_CSP_I420] = { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256/2, 256/2 } },
-        [X264_CSP_YV12] = { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256/2, 256/2 } },
-        [X264_CSP_NV12] = { 2, { 256*1, 256*1 },        { 256*1, 256/2 },       },
-        [X264_CSP_I422] = { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256*1, 256*1 } },
-        [X264_CSP_YV16] = { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256*1, 256*1 } },
-        [X264_CSP_NV16] = { 2, { 256*1, 256*1 },        { 256*1, 256*1 },       },
-        [X264_CSP_I444] = { 3, { 256*1, 256*1, 256*1 }, { 256*1, 256*1, 256*1 } },
-        [X264_CSP_YV24] = { 3, { 256*1, 256*1, 256*1 }, { 256*1, 256*1, 256*1 } },
-        [X264_CSP_BGR]  = { 1, { 256*3 },               { 256*1 },              },
-        [X264_CSP_BGRA] = { 1, { 256*4 },               { 256*1 },              },
-        [X264_CSP_RGB]  = { 1, { 256*3 },               { 256*1 },              },
+        {},
+        { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256/2, 256/2 } },
+        { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256/2, 256/2 } },
+        { 2, { 256*1, 256*1 },        { 256*1, 256/2 },       },
+        { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256*1, 256*1 } },
+        { 3, { 256*1, 256/2, 256/2 }, { 256*1, 256*1, 256*1 } },
+        { 2, { 256*1, 256*1 },        { 256*1, 256*1 },       },
+        { 3, { 256*1, 256*1, 256*1 }, { 256*1, 256*1, 256*1 } },
+        { 3, { 256*1, 256*1, 256*1 }, { 256*1, 256*1, 256*1 } },
+        { 1, { 256*3 },               { 256*1 },              },
+        { 1, { 256*4 },               { 256*1 },              },
+        { 1, { 256*3 },               { 256*1 },              },
     };
 
     int csp = i_csp & X264_CSP_MASK;
@@ -1125,7 +1126,7 @@ int x264_picture_alloc( x264_picture_t *pic, int i_csp, int i_width, int i_heigh
         plane_offset[i] = frame_size;
         frame_size += plane_size;
     }
-    pic->img.plane[0] = x264_malloc( frame_size );
+    pic->img.plane[0] = (uint8_t*)x264_malloc( frame_size );
     if( !pic->img.plane[0] )
         return -1;
     for( int i = 1; i < pic->img.i_plane; i++ )
@@ -1152,7 +1153,7 @@ void *x264_malloc( int i_size )
     uint8_t *align_buf = NULL;
 #if SYS_MACOSX || (SYS_WINDOWS && ARCH_X86_64)
     /* Mac OS X and Win x64 always returns 16 byte aligned memory */
-    align_buf = malloc( i_size );
+    align_buf = (uint8_t*)malloc( i_size );
 #elif HAVE_MALLOC_H
     align_buf = memalign( 16, i_size );
 #else
@@ -1225,7 +1226,7 @@ char *x264_slurp_file( const char *filename )
     b_error |= fseek( fh, 0, SEEK_SET ) < 0;
     if( b_error )
         goto error;
-    buf = x264_malloc( i_size+2 );
+    buf = (char*)x264_malloc( i_size+2 );
     if( !buf )
         goto error;
     b_error |= fread( buf, 1, i_size, fh ) != i_size;
@@ -1253,7 +1254,7 @@ char *x264_param2string( x264_param_t *p, int b_res )
     char *buf, *s;
     if( p->rc.psz_zones )
         len += strlen(p->rc.psz_zones);
-    buf = s = x264_malloc( len );
+    buf = s = (char*)x264_malloc( len );
     if( !buf )
         return NULL;
 

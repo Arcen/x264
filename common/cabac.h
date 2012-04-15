@@ -27,6 +27,7 @@
 #ifndef X264_CABAC_H
 #define X264_CABAC_H
 
+extern "C" {
 typedef struct
 {
     /* state */
@@ -110,5 +111,6 @@ static ALWAYS_INLINE int x264_cabac_size_decision_noup2( uint8_t *state, long b 
 {
     return x264_cabac_entropy[*state^b];
 }
+};
 
 #endif

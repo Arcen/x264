@@ -28,8 +28,86 @@
  *****************************************************************************/
 
 #include <signal.h>
+#include <string.h>
+#include <stdlib.h>
 #define _GNU_SOURCE
-#include <getopt.h>
+//#include <getopt.h>
+int optind = 1;
+//int opterr = 0;
+//int optopt = 0;
+char * optarg = 0;
+enum argument_option
+{
+    no_argument,
+    required_argument,
+    //optional_argument,
+};
+struct option {
+    const char * name;
+    int has_arg;
+    int * flag;
+    int val;
+};
+static int getopt_long( int argc, char ** argv, char * short_options, option * long_options, int * longindex )
+{
+    //static char short_options[] = "8A:B:b:f:hI:i:m:o:p:q:r:t:Vvw";
+    int short_len = short_options ? strlen(short_options) : 0;
+    optarg = NULL;
+    if (optind < 1) optind = 1;
+    while (optind < argc) {
+        if (argv[optind][0] == '-' && argv[optind][1] == '-' && argv[optind][2] == 0) {
+            optind++;
+            return -1;
+        }
+        if (argv[optind][0] == '-' && argv[optind][1] != '\0') {
+            if (argv[optind][1] == '-' && long_options) {
+                char * l = argv[optind] + 2;
+                for ( option * o = long_options; o->flag || o->name || o->val || o->has_arg; o++ ) {
+                    int len = strlen(o->name);
+                    if (memcmp(l,o->name,len) == 0 && ( l[len] == '=' || l[len] == '\0')) {
+                        if (o->has_arg == no_argument) {
+                            optind++;
+                        } else if (l[len] == '=') {
+                            optind++;
+                            optarg = l + len + 1;
+                        } else if (l[len] == '\0' && optind + 1 < argc) {
+                            optarg = argv[optind+1];
+                            optind += 2;
+                        } else {
+                            return ':';
+                        }
+                        if(o->flag) *(o->flag) = o->val;
+                        return o->val;
+                    }
+                }
+            }
+            char s = argv[optind][1];
+            for ( int i = 0; i < short_len; ++i ) {
+                if (short_options[i] == ':') continue;
+                if (short_options[i] == s) {
+                    if (i + 1 < short_len && short_options[i+1] == ':') {//required option
+                        if (argv[optind][2]) {
+                            optarg = argv[optind] + 2;
+                        } else if (optind+1 < argc) {
+                            optarg = argv[optind+1];
+                        } else {
+                            return short_options[0] == ':' ? ':' : '?';
+                        }
+                        optind += 2;
+                        return s;
+                    } else {
+                        optind++;
+                        return s;
+                    }
+                }
+            }
+            return '?';
+        }
+    }
+    return -1;
+}
+
+
 #include "common/common.h"
 #include "x264cli.h"
 #include "input/input.h"
@@ -162,12 +240,13 @@ enum pulldown_type_e
 
 static const cli_pulldown_t pulldown_values[] =
 {
-    [X264_PULLDOWN_22]     = {1,  {TB},                                   1.0},
-    [X264_PULLDOWN_32]     = {4,  {TBT, BT, BTB, TB},                     1.25},
-    [X264_PULLDOWN_64]     = {2,  {PIC_STRUCT_DOUBLE, PIC_STRUCT_TRIPLE}, 1.0},
-    [X264_PULLDOWN_DOUBLE] = {1,  {PIC_STRUCT_DOUBLE},                    2.0},
-    [X264_PULLDOWN_TRIPLE] = {1,  {PIC_STRUCT_TRIPLE},                    3.0},
-    [X264_PULLDOWN_EURO]   = {24, {TBT, BT, BT, BT, BT, BT, BT, BT, BT, BT, BT, BT,
+    {},
+    {1,  {TB},                                   1.0},
+    {4,  {TBT, BT, BTB, TB},                     1.25},
+    {2,  {PIC_STRUCT_DOUBLE, PIC_STRUCT_TRIPLE}, 1.0},
+    {1,  {PIC_STRUCT_DOUBLE},                    2.0},
+    {1,  {PIC_STRUCT_TRIPLE},                    3.0},
+    {24, {TBT, BT, BT, BT, BT, BT, BT, BT, BT, BT, BT, BT,
                                    BTB, TB, TB, TB, TB, TB, TB, TB, TB, TB, TB, TB}, 25.0/24.0}
 };
 
@@ -1407,6 +1486,7 @@ static int parse( int argc, char **argv, x264_param_t *param, cli_opt_t *opt )
                 output_opt.use_dts_compress = 1;
                 break;
             case OPT_OUTPUT_CSP:
+                {
                 FAIL_IF_ERROR( parse_enum_value( optarg, output_csp_names, &output_csp ), "Unknown output csp `%s'\n", optarg )
                 // correct the parsed value to the libx264 csp value
 #if X264_CHROMA_FORMAT
@@ -1415,6 +1495,7 @@ static int parse( int argc, char **argv, x264_param_t *param, cli_opt_t *opt )
                 static const uint8_t output_csp_fix[] = { X264_CSP_I420, X264_CSP_I422, X264_CSP_I444, X264_CSP_RGB };
 #endif
                 param->i_csp = output_csp = output_csp_fix[output_csp];
+                }
                 break;
             case OPT_INPUT_RANGE:
                 FAIL_IF_ERROR( parse_enum_value( optarg, range_names, &input_opt.input_range ), "Unknown input range `%s'\n", optarg )

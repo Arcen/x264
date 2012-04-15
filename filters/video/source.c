@@ -35,11 +35,11 @@ typedef struct
     int cur_frame;
 } source_hnd_t;
 
-cli_vid_filter_t source_filter;
+extern cli_vid_filter_t source_filter;
 
 static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x264_param_t *param, char *opt_string )
 {
-    source_hnd_t *h = calloc( 1, sizeof(source_hnd_t) );
+    source_hnd_t *h = (source_hnd_t *)calloc( 1, sizeof(source_hnd_t) );
     if( !h )
         return -1;
     h->cur_frame = -1;
@@ -56,7 +56,7 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x2
 
 static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 {
-    source_hnd_t *h = handle;
+    source_hnd_t *h = (source_hnd_t *)handle;
     /* do not allow requesting of frames from before the current position */
     if( frame <= h->cur_frame || cli_input.read_frame( &h->pic, h->hin, frame ) )
         return -1;
@@ -67,7 +67,7 @@ static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 
 static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 {
-    source_hnd_t *h = handle;
+    source_hnd_t *h = (source_hnd_t *)handle;
     if( cli_input.release_frame && cli_input.release_frame( &h->pic, h->hin ) )
         return -1;
     return 0;
@@ -75,7 +75,7 @@ static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 
 static void free_filter( hnd_t handle )
 {
-    source_hnd_t *h = handle;
+    source_hnd_t *h = (source_hnd_t *)handle;
     cli_input.picture_clean( &h->pic );
     cli_input.close_file( h->hin );
     free( h );

@@ -56,7 +56,7 @@ static int csp_string_to_int( char *csp_name )
 
 static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, cli_input_opt_t *opt )
 {
-    y4m_hnd_t *h = malloc( sizeof(y4m_hnd_t) );
+    y4m_hnd_t *h = (y4m_hnd_t *)malloc( sizeof(y4m_hnd_t) );
     int i;
     uint32_t n, d;
     char header[MAX_YUV4_HEADER+10];
@@ -228,7 +228,7 @@ static int read_frame_internal( cli_pic_t *pic, y4m_hnd_t *h )
 
 static int read_frame( cli_pic_t *pic, hnd_t handle, int i_frame )
 {
-    y4m_hnd_t *h = handle;
+    y4m_hnd_t *h = (y4m_hnd_t *)handle;
 
     if( i_frame > h->next_frame )
     {
@@ -252,7 +252,7 @@ static int read_frame( cli_pic_t *pic, hnd_t handle, int i_frame )
 
 static int close_file( hnd_t handle )
 {
-    y4m_hnd_t *h = handle;
+    y4m_hnd_t *h = (y4m_hnd_t *)handle;
     if( !h || !h->fh )
         return 0;
     fclose( h->fh );

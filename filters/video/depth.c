@@ -27,7 +27,7 @@
 #define NAME "depth"
 #define FAIL_IF_ERROR( cond, ... ) FAIL_IF_ERR( cond, NAME, __VA_ARGS__ )
 
-cli_vid_filter_t depth_filter;
+extern cli_vid_filter_t depth_filter;
 
 typedef struct
 {
@@ -136,7 +136,7 @@ static void scale_image( cli_image_t *output, cli_image_t *img )
 
 static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 {
-    depth_hnd_t *h = handle;
+    depth_hnd_t *h = (depth_hnd_t *)handle;
 
     if( h->prev_filter.get_frame( h->prev_hnd, output, frame ) )
         return -1;
@@ -156,13 +156,13 @@ static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 
 static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 {
-    depth_hnd_t *h = handle;
+    depth_hnd_t *h = (depth_hnd_t *)handle;
     return h->prev_filter.release_frame( h->prev_hnd, pic, frame );
 }
 
 static void free_filter( hnd_t handle )
 {
-    depth_hnd_t *h = handle;
+    depth_hnd_t *h = (depth_hnd_t *)handle;
     h->prev_filter.free( h->prev_hnd );
     x264_cli_pic_clean( &h->buffer );
     x264_free( h );
@@ -202,7 +202,7 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info,
     if( change_fmt || bit_depth != 8 * x264_cli_csp_depth_factor( csp ) )
     {
         FAIL_IF_ERROR( !depth_filter_csp_is_supported(csp), "unsupported colorspace.\n" )
-        depth_hnd_t *h = x264_malloc( sizeof(depth_hnd_t) + (info->width+1)*sizeof(int16_t) );
+        depth_hnd_t *h = (depth_hnd_t *)x264_malloc( sizeof(depth_hnd_t) + (info->width+1)*sizeof(int16_t) );
 
         if( !h )
             return -1;

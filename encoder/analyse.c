@@ -32,7 +32,8 @@
 #include "me.h"
 #include "ratecontrol.h"
 #include "analyse.h"
-#include "rdo.c"
+#include "rdo.h"
+extern "C" {
 
 typedef struct
 {
@@ -280,7 +281,7 @@ static uint16_t x264_cost_i4x4_mode[(QP_MAX+2)*32];
 
 float *x264_analyse_prepare_costs( x264_t *h )
 {
-    float *logs = x264_malloc( (2*4*2048+1)*sizeof(float) );
+    float *logs = (float*)x264_malloc( (2*4*2048+1)*sizeof(float) );
     if( !logs )
         return NULL;
     logs[0] = 0.718f;
@@ -850,7 +851,7 @@ static void x264_mb_analyse_intra( x264_t *h, x264_mb_analysis_t *a, int i_satd_
     /* 8x8 prediction selection */
     if( flags & X264_ANALYSE_I8x8 )
     {
-        ALIGNED_ARRAY_32( pixel, edge,[36] );
+        ALIGNED_ARRAY_32_3( pixel, edge,[36] );
         x264_pixel_cmp_t sa8d = (h->pixf.mbcmp[0] == h->pixf.satd[0]) ? h->pixf.sa8d[PIXEL_8x8] : h->pixf.mbcmp[PIXEL_8x8];
         int i_satd_thresh = a->i_mbrd ? COST_MAX : X264_MIN( i_satd_inter, a->i_satd_i16x16 );
 
@@ -1238,7 +1239,7 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
     }
     else if( h->mb.i_type == I_8x8 )
     {
-        ALIGNED_ARRAY_32( pixel, edge,[4],[32] ); // really [3][36], but they can overlap
+        ALIGNED_ARRAY_32_4( pixel, edge,4,32 ); // really [3][36], but they can overlap
         pixel4 pels_h[3][2] = {{0}};
         pixel pels_v[3][7] = {{0}};
         uint16_t nnz[3][2] = {{0}}; //shut up gcc
@@ -3748,7 +3749,15 @@ intra_analysis:
     if( analysis.i_mbrd >= 2 )
     {
         /* Don't bother with bipred or 8x8-and-below, the odds are incredibly low. */
-        static const uint8_t check_mv_lists[X264_MBTYPE_MAX] = {[P_L0]=1, [B_L0_L0]=1, [B_L1_L1]=2};
+        static const uint8_t check_mv_lists[X264_MBTYPE_MAX] = {
+            0, 0, 0, 0,
+            1,//P_LO
+            0, 0, 0,
+            1,//B_L0_L0
+            0, 0, 0,
+            2,//B_L1_L1
+            //[P_L0]=1, [B_L0_L0]=1, [B_L1_L1]=2
+        };
         int list = check_mv_lists[h->mb.i_type] - 1;
         if( list >= 0 && h->mb.i_partition != D_16x16 &&
             M32( &h->mb.cache.mv[list][x264_scan8[0]] ) == M32( &h->mb.cache.mv[list][x264_scan8[12]] ) &&
@@ -3934,3 +3943,4 @@ static void x264_analyse_update_cache( x264_t *h, x264_mb_analysis_t *a  )
 
 #include "slicetype.c"
 
+};

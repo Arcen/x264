@@ -61,7 +61,7 @@ static x264_win32thread_control_t thread_control;
 /* _beginthreadex requires that the start routine is __stdcall */
 static unsigned __stdcall x264_win32thread_worker( void *arg )
 {
-    x264_pthread_t *h = arg;
+    x264_pthread_t *h = (x264_pthread_t *)arg;
     h->ret = h->func( h->arg );
     return 0;
 }
@@ -132,7 +132,7 @@ int x264_pthread_cond_init( x264_pthread_cond_t *cond, const x264_pthread_condat
     }
 
     /* non native condition variables */
-    x264_win32_cond_t *win32_cond = calloc( 1, sizeof(x264_win32_cond_t) );
+    x264_win32_cond_t *win32_cond = (x264_win32_cond_t *)calloc( 1, sizeof(x264_win32_cond_t) );
     if( !win32_cond )
         return -1;
     cond->ptr = win32_cond;
@@ -159,7 +159,7 @@ int x264_pthread_cond_destroy( x264_pthread_cond_t *cond )
         return 0;
 
     /* non native condition variables */
-    x264_win32_cond_t *win32_cond = cond->ptr;
+    x264_win32_cond_t *win32_cond = (x264_win32_cond_t *)cond->ptr;
     CloseHandle( win32_cond->semaphore );
     CloseHandle( win32_cond->waiters_done );
     x264_pthread_mutex_destroy( &win32_cond->mtx_broadcast );
@@ -178,7 +178,7 @@ int x264_pthread_cond_broadcast( x264_pthread_cond_t *cond )
     }
 
     /* non native condition variables */
-    x264_win32_cond_t *win32_cond = cond->ptr;
+    x264_win32_cond_t *win32_cond = (x264_win32_cond_t *)cond->ptr;
     x264_pthread_mutex_lock( &win32_cond->mtx_broadcast );
     x264_pthread_mutex_lock( &win32_cond->mtx_waiter_count );
     int have_waiter = 0;
@@ -210,7 +210,7 @@ int x264_pthread_cond_signal( x264_pthread_cond_t *cond )
     }
 
     /* non-native condition variables */
-    x264_win32_cond_t *win32_cond = cond->ptr;
+    x264_win32_cond_t *win32_cond = (x264_win32_cond_t *)cond->ptr;
 
     x264_pthread_mutex_lock( &win32_cond->mtx_broadcast );
     x264_pthread_mutex_lock( &win32_cond->mtx_waiter_count );
@@ -232,7 +232,7 @@ int x264_pthread_cond_wait( x264_pthread_cond_t *cond, x264_pthread_mutex_t *mut
         return !thread_control.cond_wait( cond, mutex, INFINITE );
 
     /* non native condition variables */
-    x264_win32_cond_t *win32_cond = cond->ptr;
+    x264_win32_cond_t *win32_cond = (x264_win32_cond_t *)cond->ptr;
 
     x264_pthread_mutex_lock( &win32_cond->mtx_broadcast );
     x264_pthread_mutex_lock( &win32_cond->mtx_waiter_count );
@@ -259,14 +259,16 @@ int x264_pthread_cond_wait( x264_pthread_cond_t *cond, x264_pthread_mutex_t *mut
 int x264_win32_threading_init( void )
 {
     /* find function pointers to API functions, if they exist */
-    HANDLE kernel_dll = GetModuleHandle( TEXT( "kernel32.dll" ) );
-    thread_control.cond_init = (void*)GetProcAddress( kernel_dll, "InitializeConditionVariable" );
+    HMODULE kernel_dll = (HMODULE)GetModuleHandle( TEXT( "kernel32.dll" ) );
+    typedef void (__stdcall func_t)(x264_pthread_cond_t*);
+    typedef BOOL (__stdcall func2_t)(x264_pthread_cond_t*, x264_pthread_mutex_t *, DWORD);
+    thread_control.cond_init = (func_t*)GetProcAddress( kernel_dll, "InitializeConditionVariable" );
     if( thread_control.cond_init )
     {
         /* we're on a windows 6.0+ kernel, acquire the rest of the functions */
-        thread_control.cond_broadcast = (void*)GetProcAddress( kernel_dll, "WakeAllConditionVariable" );
-        thread_control.cond_signal = (void*)GetProcAddress( kernel_dll, "WakeConditionVariable" );
-        thread_control.cond_wait = (void*)GetProcAddress( kernel_dll, "SleepConditionVariableCS" );
+        thread_control.cond_broadcast = (func_t*)GetProcAddress( kernel_dll, "WakeAllConditionVariable" );
+        thread_control.cond_signal = (func_t*)GetProcAddress( kernel_dll, "WakeConditionVariable" );
+        thread_control.cond_wait = (func2_t*)GetProcAddress( kernel_dll, "SleepConditionVariableCS" );
     }
     return x264_pthread_mutex_init( &thread_control.static_mutex, NULL );
 }
@@ -286,8 +288,9 @@ int x264_pthread_num_processors_np()
      * On platforms that support processor grouping, use GetThreadGroupAffinity to get the current thread's affinity instead. */
 #if ARCH_X86_64
     /* find function pointers to API functions specific to x86_64 platforms, if they exist */
-    HANDLE kernel_dll = GetModuleHandle( TEXT( "kernel32.dll" ) );
-    BOOL (*get_thread_affinity)( HANDLE thread, x264_group_affinity_t *group_affinity ) = (void*)GetProcAddress( kernel_dll, "GetThreadGroupAffinity" );
+    HMODULE kernel_dll = (HMODULE)GetModuleHandle( TEXT( "kernel32.dll" ) );
+    typedef BOOL (func_t)(HANDLE, x264_group_affinity_t*);
+    BOOL (*get_thread_affinity)( HANDLE thread, x264_group_affinity_t *group_affinity ) = (func_t*)GetProcAddress( kernel_dll, "GetThreadGroupAffinity" );
     if( get_thread_affinity )
     {
         /* running on a platform that supports >64 logical cpus */

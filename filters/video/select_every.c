@@ -41,7 +41,7 @@ typedef struct
     int64_t pts;
 } selvry_hnd_t;
 
-cli_vid_filter_t select_every_filter;
+extern cli_vid_filter_t select_every_filter;
 
 static void help( int longhelp )
 {
@@ -56,7 +56,7 @@ static void help( int longhelp )
 
 static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x264_param_t *param, char *opt_string )
 {
-    selvry_hnd_t *h = malloc( sizeof(selvry_hnd_t) );
+    selvry_hnd_t *h = (selvry_hnd_t *)malloc( sizeof(selvry_hnd_t) );
     if( !h )
         return -1;
     h->pattern_len = 0;
@@ -78,7 +78,7 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x2
     FAIL_IF_ERROR( !h->step_size, "no step size provided\n" )
     FAIL_IF_ERROR( !h->pattern_len, "no offsets supplied\n" )
 
-    h->pattern = malloc( h->pattern_len * sizeof(int) );
+    h->pattern = (int *)malloc( h->pattern_len * sizeof(int) );
     if( !h->pattern )
         return -1;
     memcpy( h->pattern, offsets, h->pattern_len * sizeof(int) );
@@ -95,7 +95,7 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x2
          if( max_rewind == h->step_size )
              break;
     }
-    if( x264_init_vid_filter( "cache", handle, filter, info, param, (void*)max_rewind ) )
+    if( x264_init_vid_filter( "cache", handle, filter, info, param, (char*)max_rewind ) )
         return -1;
 
     /* done initing, overwrite properties */
@@ -125,7 +125,7 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x2
 
 static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 {
-    selvry_hnd_t *h = handle;
+    selvry_hnd_t *h = (selvry_hnd_t *)handle;
     int pat_frame = h->pattern[frame % h->pattern_len] + frame / h->pattern_len * h->step_size;
     if( h->prev_filter.get_frame( h->prev_hnd, output, pat_frame ) )
         return -1;
@@ -139,14 +139,14 @@ static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 
 static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 {
-    selvry_hnd_t *h = handle;
+    selvry_hnd_t *h = (selvry_hnd_t *)handle;
     int pat_frame = h->pattern[frame % h->pattern_len] + frame / h->pattern_len * h->step_size;
     return h->prev_filter.release_frame( h->prev_hnd, pic, pat_frame );
 }
 
 static void free_filter( hnd_t handle )
 {
-    selvry_hnd_t *h = handle;
+    selvry_hnd_t *h = (selvry_hnd_t *)handle;
     h->prev_filter.free( h->prev_hnd );
     free( h->pattern );
     free( h );

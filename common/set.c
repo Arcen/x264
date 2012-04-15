@@ -298,7 +298,7 @@ static int x264_cqm_parse_jmlist( x264_t *h, const char *buf, const char *name,
 {
     int i;
 
-    char *p = strstr( buf, name );
+    const char *p = strstr( buf, name );
     if( !p )
     {
         memset( cqm, 16, length );
@@ -309,7 +309,7 @@ static int x264_cqm_parse_jmlist( x264_t *h, const char *buf, const char *name,
     if( *p == 'U' || *p == 'V' )
         p++;
 
-    char *nextvar = strstr( p, "INT" );
+    const char *nextvar = strstr( p, "INT" );
 
     for( i = 0; i < length && (p = strpbrk( p, " \t\n," )) && (p = strpbrk( p, "0123456789" )); i++ )
     {

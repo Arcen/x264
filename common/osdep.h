@@ -94,6 +94,19 @@
     uint8_t name##_u [sizeof(type sub1 __VA_ARGS__) + mask]; \
     type (*name) __VA_ARGS__ = (void*)((intptr_t)(name##_u+mask) & ~mask)
 
+#define ALIGNED_ARRAY_EMU4( mask, type, name, sub1 )\
+    uint8_t name##_u [sizeof(type sub1) + mask]; \
+    type (*name) = (type*)((intptr_t)(name##_u+mask) & ~mask)
+
+#define ALIGNED_ARRAY_EMU5( mask, type, name, sub1, sub2 )\
+    uint8_t name##_u [sizeof(type [sub1] [sub2]) + mask]; \
+    typedef type (type##sub2)[sub2];\
+    type (*name) [sub2] = (type##sub2*)((intptr_t)(name##_u+mask) & ~mask)
+
+#define ALIGNED_ARRAY_EMU3( mask, type, name )\
+    uint8_t name##_u [sizeof(type) + mask]; \
+    type (*name) = (type*)((intptr_t)(name##_u+mask) & ~mask)
+
 #if ARCH_ARM && SYS_MACOSX
 #define ALIGNED_ARRAY_8( ... ) ALIGNED_ARRAY_EMU( 7, __VA_ARGS__ )
 #else
@@ -106,10 +119,16 @@
 #else
 #define ALIGNED_ARRAY_16( type, name, sub1, ... )\
     ALIGNED_16( type name sub1 __VA_ARGS__ )
+#define ALIGNED_ARRAY_16_3( type, name, sub1) ALIGNED_16( type name sub1 )
 #endif
 
 #define ALIGNED_ARRAY_32( ... ) ALIGNED_ARRAY_EMU( 31, __VA_ARGS__ )
 #define ALIGNED_ARRAY_64( ... ) ALIGNED_ARRAY_EMU( 63, __VA_ARGS__ )
+#define ALIGNED_ARRAY_32_3(type, name, sub1) ALIGNED_ARRAY_EMU4( 31, type, name, sub1 )
+#define ALIGNED_ARRAY_64_3(type, name, sub1) ALIGNED_ARRAY_EMU4( 63, type, name, sub1 )
+#define ALIGNED_ARRAY_32_4(type, name, sub1, sub2) ALIGNED_ARRAY_EMU5( 31, type, name, sub1, sub2 )
+#define ALIGNED_ARRAY_64_4(type, name, sub1, sub2) ALIGNED_ARRAY_EMU5( 63, type, name, sub1, sub2 )
+
 
 #define UNINIT(x) x=x
 

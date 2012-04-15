@@ -155,7 +155,8 @@ int x264_lookahead_init( x264_t *h, int i_slicetype_length )
     if( x264_macroblock_thread_allocate( look_h, 1 ) < 0 )
         goto fail;
 
-    if( x264_pthread_create( &look->thread_handle, NULL, (void*)x264_lookahead_thread, look_h ) )
+    typedef void *(func_t)(void*);
+    if( x264_pthread_create( &look->thread_handle, NULL, (func_t*)x264_lookahead_thread, look_h ) )
         goto fail;
     look->b_thread_active = 1;
 

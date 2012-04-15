@@ -40,7 +40,7 @@ typedef struct
     int eof;         /* frame beyond end of the file */
 } cache_hnd_t;
 
-cli_vid_filter_t cache_filter;
+extern cli_vid_filter_t cache_filter;
 
 static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x264_param_t *param, char *opt_string )
 {
@@ -48,18 +48,18 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x2
     /* upon a <= 0 cache request, do nothing */
     if( size <= 0 )
         return 0;
-    cache_hnd_t *h = calloc( 1, sizeof(cache_hnd_t) );
+    cache_hnd_t *h = (cache_hnd_t *)calloc( 1, sizeof(cache_hnd_t) );
     if( !h )
         return -1;
 
     h->max_size = size;
-    h->cache = malloc( (h->max_size+1) * sizeof(cli_pic_t*) );
+    h->cache = (cli_pic_t**)malloc( (h->max_size+1) * sizeof(cli_pic_t*) );
     if( !h->cache )
         return -1;
 
     for( int i = 0; i < h->max_size; i++ )
     {
-        h->cache[i] = malloc( sizeof(cli_pic_t) );
+        h->cache[i] = (cli_pic_t *)malloc( sizeof(cli_pic_t) );
         if( !h->cache[i] || x264_cli_pic_alloc( h->cache[i], info->csp, info->width, info->height ) )
             return -1;
     }
@@ -103,7 +103,7 @@ static void fill_cache( cache_hnd_t *h, int frame )
             return;
         }
         /* the read was successful, shift the frame off the front to the end */
-        x264_frame_push( (void*)h->cache, x264_frame_shift( (void*)h->cache ) );
+        x264_frame_push( (x264_frame_t**)h->cache, x264_frame_shift( (x264_frame_t**)h->cache ) );
         cur_frame++;
         h->cur_size++;
     }
@@ -111,7 +111,7 @@ static void fill_cache( cache_hnd_t *h, int frame )
 
 static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 {
-    cache_hnd_t *h = handle;
+    cache_hnd_t *h = (cache_hnd_t *)handle;
     FAIL_IF_ERR( frame < h->first_frame, NAME, "frame %d is before first cached frame %d \n", frame, h->first_frame );
     fill_cache( h, frame );
     if( frame > LAST_FRAME ) /* eof */
@@ -129,7 +129,7 @@ static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 
 static void free_filter( hnd_t handle )
 {
-    cache_hnd_t *h = handle;
+    cache_hnd_t *h = (cache_hnd_t *)handle;
     h->prev_filter.free( h->prev_hnd );
     for( int i = 0; i < h->max_size; i++ )
     {

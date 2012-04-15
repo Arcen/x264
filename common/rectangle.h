@@ -27,7 +27,7 @@
 /* This function should only be called with constant w / h / s arguments! */
 static ALWAYS_INLINE void x264_macroblock_cache_rect( void *dst, int w, int h, int s, uint32_t v )
 {
-    uint8_t *d = dst;
+    uint8_t *d = (uint8_t *)dst;
     uint16_t v2 = s == 2 ? v : v * 0x101;
     uint32_t v4 = s == 4 ? v : s == 2 ? v * 0x10001 : v * 0x1010101;
     uint64_t v8 = v4 + ((uint64_t)v4 << 32);

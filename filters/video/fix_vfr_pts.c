@@ -46,14 +46,14 @@ typedef struct
     int64_t last_duration;
 } fix_vfr_pts_hnd_t;
 
-cli_vid_filter_t fix_vfr_pts_filter;
+extern cli_vid_filter_t fix_vfr_pts_filter;
 
 static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x264_param_t *param, char *opt_string )
 {
     /* if the input is not vfr, we don't do anything */
     if( !info->vfr )
         return 0;
-    fix_vfr_pts_hnd_t *h = calloc( 1, sizeof(fix_vfr_pts_hnd_t) );
+    fix_vfr_pts_hnd_t *h = (fix_vfr_pts_hnd_t *)calloc( 1, sizeof(fix_vfr_pts_hnd_t) );
     if( !h )
         return -1;
 
@@ -68,7 +68,7 @@ static int init( hnd_t *handle, cli_vid_filter_t *filter, video_info_t *info, x2
 
 static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 {
-    fix_vfr_pts_hnd_t *h = handle;
+    fix_vfr_pts_hnd_t *h = (fix_vfr_pts_hnd_t *)handle;
     /* if we want the holder picture and it errored, return the error. */
     if( frame == h->holder_frame )
     {
@@ -117,7 +117,7 @@ static int get_frame( hnd_t handle, cli_pic_t *output, int frame )
 
 static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 {
-    fix_vfr_pts_hnd_t *h = handle;
+    fix_vfr_pts_hnd_t *h = (fix_vfr_pts_hnd_t *)handle;
     /* if the frame is the buffered one, it's already been released */
     if( frame == (h->holder_frame - 1) )
         return 0;
@@ -126,7 +126,7 @@ static int release_frame( hnd_t handle, cli_pic_t *pic, int frame )
 
 static void free_filter( hnd_t handle )
 {
-    fix_vfr_pts_hnd_t *h = handle;
+    fix_vfr_pts_hnd_t *h = (fix_vfr_pts_hnd_t *)handle;
     h->prev_filter.free( h->prev_hnd );
     if( h->buffer_allocated )
         x264_cli_pic_clean( &h->buffer );

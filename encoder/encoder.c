@@ -100,7 +100,7 @@ static void x264_frame_dump( x264_t *h )
     {
         int cw = h->param.i_width>>1;
         int ch = h->param.i_height>>CHROMA_V_SHIFT;
-        pixel *planeu = x264_malloc( (cw*ch*2+32)*sizeof(pixel) );
+        pixel *planeu = (pixel*)x264_malloc( (cw*ch*2+32)*sizeof(pixel) );
         pixel *planev = planeu + cw*ch + 16;
         h->mc.plane_copy_deinterleave( planeu, cw, planev, cw, h->fdec->plane[1], h->fdec->i_stride[1], cw, ch );
         fwrite( planeu, 1, cw*ch*sizeof(pixel), f );
@@ -1265,9 +1265,9 @@ x264_t *x264_encoder_open( x264_param_t *param )
 
     h->nal_buffer_size = h->out.i_bitstream * 3/2 + 4;
     CHECKED_MALLOC( h->nal_buffer, h->nal_buffer_size );
-
+    typedef void(func_t)(void*);
     if( h->param.i_threads > 1 &&
-        x264_threadpool_init( &h->threadpool, h->param.i_threads, (void*)x264_encoder_thread_init, h ) )
+        x264_threadpool_init( &h->threadpool, h->param.i_threads, (func_t*)x264_encoder_thread_init, h ) )
         goto fail;
 
     h->thread[0] = h;
@@ -1479,7 +1479,7 @@ static int x264_nal_check_buffer( x264_t *h )
 {
     if( h->out.i_nal >= h->out.i_nals_allocated )
     {
-        x264_nal_t *new_out = x264_malloc( sizeof(x264_nal_t) * (h->out.i_nals_allocated*2) );
+        x264_nal_t *new_out = (x264_nal_t *)x264_malloc( sizeof(x264_nal_t) * (h->out.i_nals_allocated*2) );
         if( !new_out )
             return -1;
         memcpy( new_out, h->out.nal, sizeof(x264_nal_t) * (h->out.i_nals_allocated) );
@@ -1527,7 +1527,7 @@ static int x264_encoder_encapsulate_nals( x264_t *h, int start )
     if( h->nal_buffer_size < necessary_size )
     {
         h->nal_buffer_size = necessary_size * 2;
-        uint8_t *buf = x264_malloc( h->nal_buffer_size );
+        uint8_t *buf = (uint8_t*)x264_malloc( h->nal_buffer_size );
         if( !buf )
             return -1;
         if( previous_nal_size )
@@ -2635,8 +2635,9 @@ static int x264_threaded_slices_write( x264_t *h )
         x264_threadslice_cond_broadcast( h->thread[i], 0 );
     }
     /* dispatch */
+    typedef void *(func_t)(void*);
     for( int i = 0; i < h->param.i_threads; i++ )
-        x264_threadpool_run( h->threadpool, (void*)x264_slices_write, h->thread[i] );
+        x264_threadpool_run( h->threadpool, (func_t*)x264_slices_write, h->thread[i] );
     /* wait */
     for( int i = 0; i < h->param.i_threads; i++ )
         x264_threadslice_cond_wait( h->thread[i], 1 );
@@ -3161,7 +3162,8 @@ int     x264_encoder_encode( x264_t *h,
     h->i_threadslice_end = h->mb.i_mb_height;
     if( h->i_thread_frames > 1 )
     {
-        x264_threadpool_run( h->threadpool, (void*)x264_slices_write, h );
+        typedef void *(func_t)(void*);
+        x264_threadpool_run( h->threadpool, (func_t*)x264_slices_write, h );
         h->b_thread_active = 1;
     }
     else if( h->param.b_sliced_threads )

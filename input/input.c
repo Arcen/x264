@@ -26,17 +26,18 @@
 #include "input.h"
 
 const x264_cli_csp_t x264_cli_csps[] = {
-    [X264_CSP_I420] = { "i420", 3, { 1, .5, .5 }, { 1, .5, .5 }, 2, 2 },
-    [X264_CSP_I422] = { "i422", 3, { 1, .5, .5 }, { 1,  1,  1 }, 2, 1 },
-    [X264_CSP_I444] = { "i444", 3, { 1,  1,  1 }, { 1,  1,  1 }, 1, 1 },
-    [X264_CSP_YV12] = { "yv12", 3, { 1, .5, .5 }, { 1, .5, .5 }, 2, 2 },
-    [X264_CSP_YV16] = { "yv16", 3, { 1, .5, .5 }, { 1,  1,  1 }, 2, 1 },
-    [X264_CSP_YV24] = { "yv24", 3, { 1,  1,  1 }, { 1,  1,  1 }, 1, 1 },
-    [X264_CSP_NV12] = { "nv12", 2, { 1,  1 },     { 1, .5 },     2, 2 },
-    [X264_CSP_NV16] = { "nv16", 2, { 1,  1 },     { 1,  1 },     2, 1 },
-    [X264_CSP_BGR]  = { "bgr",  1, { 3 },         { 1 },         1, 1 },
-    [X264_CSP_BGRA] = { "bgra", 1, { 4 },         { 1 },         1, 1 },
-    [X264_CSP_RGB]  = { "rgb",  1, { 3 },         { 1 },         1, 1 },
+    {},
+    { "i420", 3, { 1, .5, .5 }, { 1, .5, .5 }, 2, 2 },
+    { "yv12", 3, { 1, .5, .5 }, { 1, .5, .5 }, 2, 2 },
+    { "nv12", 2, { 1,  1 },     { 1, .5 },     2, 2 },
+    { "i422", 3, { 1, .5, .5 }, { 1,  1,  1 }, 2, 1 },
+    { "yv16", 3, { 1, .5, .5 }, { 1,  1,  1 }, 2, 1 },
+    { "nv16", 2, { 1,  1 },     { 1,  1 },     2, 1 },
+    { "i444", 3, { 1,  1,  1 }, { 1,  1,  1 }, 1, 1 },
+    { "yv24", 3, { 1,  1,  1 }, { 1,  1,  1 }, 1, 1 },
+    { "bgr",  1, { 3 },         { 1 },         1, 1 },
+    { "bgra", 1, { 4 },         { 1 },         1, 1 },
+    { "rgb",  1, { 3 },         { 1 },         1, 1 },
 };
 
 int x264_cli_csp_is_invalid( int csp )
@@ -87,7 +88,7 @@ int x264_cli_pic_alloc( cli_pic_t *pic, int csp, int width, int height )
     pic->img.height = height;
     for( int i = 0; i < pic->img.planes; i++ )
     {
-         pic->img.plane[i] = x264_malloc( x264_cli_pic_plane_size( csp, width, height, i ) );
+         pic->img.plane[i] = (uint8_t*)x264_malloc( x264_cli_pic_plane_size( csp, width, height, i ) );
          if( !pic->img.plane[i] )
              return -1;
          pic->img.stride[i] = width * x264_cli_csps[csp_mask].width[i] * x264_cli_csp_depth_factor( csp );

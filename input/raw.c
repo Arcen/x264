@@ -39,7 +39,7 @@ typedef struct
 
 static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, cli_input_opt_t *opt )
 {
-    raw_hnd_t *h = calloc( 1, sizeof(raw_hnd_t) );
+    raw_hnd_t *h = (raw_hnd_t *)calloc( 1, sizeof(raw_hnd_t) );
     if( !h )
         return -1;
 
@@ -122,7 +122,7 @@ static int read_frame_internal( cli_pic_t *pic, raw_hnd_t *h )
 
 static int read_frame( cli_pic_t *pic, hnd_t handle, int i_frame )
 {
-    raw_hnd_t *h = handle;
+    raw_hnd_t *h = (raw_hnd_t *)handle;
 
     if( i_frame > h->next_frame )
     {
@@ -146,7 +146,7 @@ static int read_frame( cli_pic_t *pic, hnd_t handle, int i_frame )
 
 static int close_file( hnd_t handle )
 {
-    raw_hnd_t *h = handle;
+    raw_hnd_t *h = (raw_hnd_t *)handle;
     if( !h || !h->fh )
         return 0;
     fclose( h->fh );

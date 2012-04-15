@@ -40,7 +40,7 @@
 #include <stdarg.h>
 
 #include "x264_config.h"
-
+extern "C" {
 #define X264_BUILD 122
 
 /* x264_t:
@@ -850,5 +850,5 @@ void    x264_encoder_intra_refresh( x264_t * );
  *
  *      Returns 0 on success, negative on failure. */
 int x264_encoder_invalidate_reference( x264_t *, int64_t pts );
-
+};
 #endif

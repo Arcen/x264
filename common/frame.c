@@ -723,7 +723,7 @@ x264_frame_t *x264_frame_pop_blank_unused( x264_t *h )
     if( h->frames.blank_unused[0] )
         frame = x264_frame_pop( h->frames.blank_unused );
     else
-        frame = x264_malloc( sizeof(x264_frame_t) );
+        frame = (x264_frame_t*)x264_malloc( sizeof(x264_frame_t) );
     if( !frame )
         return NULL;
     frame->b_duplicate = 1;

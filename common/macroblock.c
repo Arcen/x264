@@ -29,6 +29,8 @@
 #include "common.h"
 #include "encoder/me.h"
 
+extern "C" {
+
 #define MC_LUMA(list,p) \
     h->mc.mc_luma( &h->mb.pic.p_fdec[p][4*y*FDEC_STRIDE+4*x], FDEC_STRIDE, \
                    &h->mb.pic.p_fref[list][i_ref][p*4], h->mb.pic.i_stride[p], \
@@ -1921,3 +1923,4 @@ void x264_macroblock_bipred_init( x264_t *h )
             }
 }
 
+};

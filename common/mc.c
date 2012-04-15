@@ -558,7 +558,7 @@ void x264_frame_filter( x264_t *h, x264_frame_t *frame, int mb_y, int b_end )
                 frame->filtered[p][3] + offs,
                 frame->plane[p] + offs,
                 stride, width + 16, height - start,
-                h->scratch_buffer );
+                (int16_t*)h->scratch_buffer );
 
         if( b_interlaced )
         {
@@ -575,7 +575,7 @@ void x264_frame_filter( x264_t *h, x264_frame_t *frame, int mb_y, int b_end )
                     frame->filtered_fld[p][3] + offs,
                     frame->plane_fld[p] + offs,
                     stride, width + 16, height_fld - start,
-                    h->scratch_buffer );
+                    (int16_t*)h->scratch_buffer );
             }
         }
     }

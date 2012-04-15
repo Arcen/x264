@@ -28,6 +28,7 @@
 #define X264_ENCODER_MACROBLOCK_H
 
 #include "common/macroblock.h"
+extern "C" {
 
 extern const int x264_lambda2_tab[QP_MAX_MAX+1];
 extern const uint16_t x264_lambda_tab[QP_MAX_MAX+1];
@@ -147,8 +148,8 @@ static ALWAYS_INLINE void x264_mb_encode_i8x8( x264_t *h, int p, int idx, int i_
     int nz;
     pixel *p_src = &h->mb.pic.p_fenc[p][8*x + 8*y*FENC_STRIDE];
     pixel *p_dst = &h->mb.pic.p_fdec[p][8*x + 8*y*FDEC_STRIDE];
-    ALIGNED_ARRAY_16( dctcoef, dct8x8,[64] );
-    ALIGNED_ARRAY_32( pixel, edge_buf,[36] );
+    ALIGNED_ARRAY_16_3( dctcoef, dct8x8,[64] );
+    ALIGNED_ARRAY_32_3( pixel, edge_buf,[36] );
 
     if( b_predict )
     {
@@ -186,6 +187,6 @@ static ALWAYS_INLINE void x264_mb_encode_i8x8( x264_t *h, int p, int idx, int i_
     else
         STORE_8x8_NNZ( p, idx, 0 );
 }
-
+};
 #endif
 

@@ -26,9 +26,16 @@
 #include "output.h"
 #include "flv_bytestream.h"
 
+union double_and_uint64_t {
+    double f;
+    uint64_t i;
+};
 uint64_t flv_dbl2int( double value )
 {
-    return (union {double f; uint64_t i;}){value}.i;
+    double_and_uint64_t du;
+    du.f = value;
+    return du.i;
+    //return (union {double f; uint64_t i;}){value}.i;
 }
 
 /* Put functions  */
@@ -87,7 +94,7 @@ void flv_put_amf_double( flv_buffer *c, double d )
 
 flv_buffer *flv_create_writer( const char *filename )
 {
-    flv_buffer *c = malloc( sizeof(*c) );
+    flv_buffer *c = (flv_buffer *)malloc( sizeof(*c) );
 
     if( !c )
         return NULL;
@@ -121,7 +128,7 @@ int flv_append_data( flv_buffer *c, uint8_t *data, unsigned size )
         if( !dp )
             return -1;
 
-        c->data = dp;
+        c->data = (uint8_t*)dp;
         c->d_max = dn;
     }
 

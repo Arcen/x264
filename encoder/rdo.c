@@ -28,7 +28,35 @@
  * instead of writing the bitstream.
  * TODO: use these for fast 1st pass too. */
 
+#define _ISOC99_SOURCE
+
+#include "common/common.h"
+#include "macroblock.h"
+#include "me.h"
+#include "ratecontrol.h"
+#include "analyse.h"
+
 #define RDO_SKIP_BS 1
+static const uint8_t x264_significant_coeff_flag_offset_8x8_[2][63] =
+{{
+    0, 1, 2, 3, 4, 5, 5, 4, 4, 3, 3, 4, 4, 4, 5, 5,
+    4, 4, 4, 4, 3, 3, 6, 7, 7, 7, 8, 9,10, 9, 8, 7,
+    7, 6,11,12,13,11, 6, 7, 8, 9,14,10, 9, 8, 6,11,
+   12,13,11, 6, 9,14,10, 9,11,12,13,11,14,10,12
+},{
+    0, 1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 7, 7, 8, 4, 5,
+    6, 9,10,10, 8,11,12,11, 9, 9,10,10, 8,11,12,11,
+    9, 9,10,10, 8,11,12,11, 9, 9,10,10, 8,13,13, 9,
+    9,10,10, 8,13,13, 9, 9,10,10,14,14,14,14,14
+}};
+static const uint8_t x264_last_coeff_flag_offset_8x8_[63] =
+{
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8
+};
+static const uint8_t x264_coeff_flag_offset_chroma_422_dc_[7] = { 0, 0, 1, 1, 2, 2, 2 }; /* MIN( i/2, 2 ) */
 
 /* Transition and size tables for abs<9 MVD and residual coding */
 /* Consist of i_prefix-2 1s, one zero, and a bypass sign bit */
@@ -46,8 +74,8 @@ static uint16_t cabac_size_5ones[128];
 #define bs_write_ue(s,v)   ((s)->i_bits_encoded += bs_size_ue(v))
 #define bs_write_se(s,v)   ((s)->i_bits_encoded += bs_size_se(v))
 #define bs_write_te(s,v,l) ((s)->i_bits_encoded += bs_size_te(v,l))
-#define x264_macroblock_write_cavlc  static x264_macroblock_size_cavlc
-#include "cavlc.c"
+#define x264_macroblock_write_cavlc  x264_macroblock_size_cavlc
+#include "e_cavlc.c"
 
 /* CABAC: not exactly the same. x264_cabac_size_decision() keeps track of
  * fractional bits, but only finite precision. */
@@ -60,8 +88,8 @@ static uint16_t cabac_size_5ones[128];
 #define x264_cabac_encode_terminal(c)     ((c)->f8_bits_encoded += 7)
 #define x264_cabac_encode_bypass(c,v)     ((c)->f8_bits_encoded += 256)
 #define x264_cabac_encode_ue_bypass(c,e,v) ((c)->f8_bits_encoded += (bs_size_ue_big(v+(1<<e)-1)-e)<<8)
-#define x264_macroblock_write_cabac  static x264_macroblock_size_cabac
-#include "cabac.c"
+#define x264_macroblock_write_cabac  x264_macroblock_size_cabac
+#include "e_cabac.c"
 
 #define COPY_CABAC h->mc.memcpy_aligned( &cabac_tmp.f8_bits_encoded, &h->cabac.f8_bits_encoded, \
         sizeof(x264_cabac_t) - offsetof(x264_cabac_t,f8_bits_encoded) - (CHROMA444 ? 0 : (1024+12)-460) )
@@ -144,7 +172,7 @@ static inline int ssd_plane( x264_t *h, int size, int p, int x, int y )
     return h->pixf.ssd[size](fenc, FENC_STRIDE, fdec, FDEC_STRIDE) + satd;
 }
 
-static inline int ssd_mb( x264_t *h )
+int ssd_mb( x264_t *h )
 {
     int chroma_size = h->luma2chroma_pixel[PIXEL_16x16];
     int chroma_ssd = ssd_plane(h, chroma_size, 1, 0, 0) + ssd_plane(h, chroma_size, 2, 0, 0);
@@ -152,7 +180,7 @@ static inline int ssd_mb( x264_t *h )
     return ssd_plane(h, PIXEL_16x16, 0, 0, 0) + chroma_ssd;
 }
 
-static int x264_rd_cost_mb( x264_t *h, int i_lambda2 )
+int x264_rd_cost_mb( x264_t *h, int i_lambda2 )
 {
     int b_transform_bak = h->mb.b_transform_8x8;
     int i_ssd;
@@ -266,7 +294,7 @@ uint64_t x264_rd_cost_part( x264_t *h, int i_lambda2, int i4, int i_pixel )
     return (i_ssd<<8) + i_bits;
 }
 
-static uint64_t x264_rd_cost_i8x8( x264_t *h, int i_lambda2, int i8, int i_mode, pixel edge[4][32] )
+uint64_t x264_rd_cost_i8x8( x264_t *h, int i_lambda2, int i8, int i_mode, pixel edge[4][32] )
 {
     uint64_t i_ssd, i_bits;
     int plane_count = CHROMA444 ? 3 : 1;
@@ -302,7 +330,7 @@ static uint64_t x264_rd_cost_i8x8( x264_t *h, int i_lambda2, int i8, int i_mode,
     return (i_ssd<<8) + i_bits;
 }
 
-static uint64_t x264_rd_cost_i4x4( x264_t *h, int i_lambda2, int i4, int i_mode )
+uint64_t x264_rd_cost_i4x4( x264_t *h, int i_lambda2, int i4, int i_mode )
 {
     uint64_t i_ssd, i_bits;
     int plane_count = CHROMA444 ? 3 : 1;
@@ -336,7 +364,7 @@ static uint64_t x264_rd_cost_i4x4( x264_t *h, int i_lambda2, int i4, int i_mode 
     return (i_ssd<<8) + i_bits;
 }
 
-static uint64_t x264_rd_cost_chroma( x264_t *h, int i_lambda2, int i_mode, int b_dct )
+uint64_t x264_rd_cost_chroma( x264_t *h, int i_lambda2, int i_mode, int b_dct )
 {
     uint64_t i_ssd, i_bits;
 
@@ -442,8 +470,10 @@ typedef struct
 #define SET_LEVEL(ndst, nsrc, l) {\
     if( sizeof(trellis_level_t) == sizeof(uint32_t) )\
         M32( &level_tree[levels_used] ) = pack16to32( nsrc.level_idx, l );\
-    else\
-        level_tree[levels_used] = (trellis_level_t){ nsrc.level_idx, l };\
+    else {\
+        level_tree[levels_used].next = nsrc.level_idx;\
+        level_tree[levels_used].abs_level = l;\
+    }\
     ndst.level_idx = levels_used;\
     levels_used++;\
 }

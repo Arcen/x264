@@ -594,7 +594,7 @@ void x264_me_search_ref( x264_t *h, x264_me_t *m, int16_t (*mvc)[2], int i_mvc, 
             ALIGNED_ARRAY_16( int, enc_dc,[4] );
             int sad_size = i_pixel <= PIXEL_8x8 ? PIXEL_8x8 : PIXEL_4x4;
             int delta = x264_pixel_size[sad_size].w;
-            int16_t *xs = h->scratch_buffer;
+            int16_t *xs = (int16_t*)h->scratch_buffer;
             int xn;
             uint16_t *cost_fpel_mvx = h->cost_mv_fpel[h->mb.i_qp][-m->mvp[0]&3] + (-m->mvp[0]>>2);
 

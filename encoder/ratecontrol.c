@@ -27,6 +27,7 @@
  * For more information, contact us at licensing@x264.com.
  *****************************************************************************/
 
+extern "C" {
 #define _ISOC99_SOURCE
 #undef NDEBUG // always check asserts, the speed effect is far too small to disable them
 
@@ -473,7 +474,7 @@ int x264_reference_build_list_optimal( x264_t *h )
 
 static char *x264_strcat_filename( char *input, char *suffix )
 {
-    char *output = x264_malloc( strlen( input ) + strlen( suffix ) + 1 );
+    char *output = (char*)x264_malloc( strlen( input ) + strlen( suffix ) + 1 );
     if( !output )
         return NULL;
     strcpy( output, input );
@@ -640,9 +641,9 @@ int x264_ratecontrol_new( x264_t *h )
         x264_reduce_fraction64( &num, &denom );
         rc->hrd_multiply_denom = 180000 / num;
 
-        double bits_required = log2( 180000 / rc->hrd_multiply_denom )
-                             + log2( h->sps->vui.i_time_scale )
-                             + log2( h->sps->vui.hrd.i_cpb_size_unscaled );
+        double bits_required = log2( 180000.0 / rc->hrd_multiply_denom )
+                             + log2( (double)h->sps->vui.i_time_scale )
+                             + log2( (double)h->sps->vui.hrd.i_cpb_size_unscaled );
         if( bits_required >= 63 )
         {
             x264_log( h, X264_LOG_ERROR, "HRD with very large timescale and bufsize not supported\n" );
@@ -1808,10 +1809,10 @@ static double get_qscale(x264_t *h, ratecontrol_entry_t *rce, double rate_factor
     if( h->param.rc.b_mb_tree )
     {
         double timescale = (double)h->sps->vui.i_num_units_in_tick / h->sps->vui.i_time_scale;
-        q = pow( BASE_FRAME_DURATION / CLIP_DURATION(rce->i_duration * timescale), 1 - h->param.rc.f_qcompress );
+        q = pow( (double)(BASE_FRAME_DURATION / CLIP_DURATION(rce->i_duration * timescale)), (double)(1 - h->param.rc.f_qcompress) );
     }
     else
-        q = pow( rce->blurred_complexity, 1 - rcc->qcompress );
+        q = pow( (double)(rce->blurred_complexity), (double)(1 - rcc->qcompress) );
 
     // avoid NaN's in the rc_eq
     if( !isfinite(q) || rce->tex_bits + rce->mv_bits == 0 )
@@ -2885,3 +2886,4 @@ static int init_pass2( x264_t *h )
 fail:
     return -1;
 }
+};

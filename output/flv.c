@@ -75,7 +75,7 @@ static int write_header( flv_buffer *c )
 
 static int open_file( char *psz_filename, hnd_t *p_handle, cli_output_opt_t *opt )
 {
-    flv_hnd_t *p_flv = malloc( sizeof(*p_flv) );
+    flv_hnd_t *p_flv = (flv_hnd_t *)malloc( sizeof(*p_flv) );
     *p_handle = NULL;
     if( !p_flv )
         return -1;
@@ -95,7 +95,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, cli_output_opt_t *opt
 
 static int set_param( hnd_t handle, x264_param_t *p_param )
 {
-    flv_hnd_t *p_flv = handle;
+    flv_hnd_t *p_flv = (flv_hnd_t *)handle;
     flv_buffer *c = p_flv->c;
 
     flv_put_byte( c, FLV_TAG_TYPE_META ); // Tag Type "script data"
@@ -161,7 +161,7 @@ static int set_param( hnd_t handle, x264_param_t *p_param )
 
 static int write_headers( hnd_t handle, x264_nal_t *p_nal )
 {
-    flv_hnd_t *p_flv = handle;
+    flv_hnd_t *p_flv = (flv_hnd_t *)handle;
     flv_buffer *c = p_flv->c;
 
     int sps_size = p_nal[0].i_payload;
@@ -172,7 +172,7 @@ static int write_headers( hnd_t handle, x264_nal_t *p_nal )
     /* It is within the spec to write this as-is but for
      * mplayer/ffmpeg playback this is deferred until before the first frame */
 
-    p_flv->sei = malloc( sei_size );
+    p_flv->sei = (uint8_t *)malloc( sei_size );
     if( !p_flv->sei )
         return -1;
     p_flv->sei_len = sei_size;
@@ -219,7 +219,7 @@ static int write_headers( hnd_t handle, x264_nal_t *p_nal )
 
 static int write_frame( hnd_t handle, uint8_t *p_nalu, int i_size, x264_picture_t *p_picture )
 {
-    flv_hnd_t *p_flv = handle;
+    flv_hnd_t *p_flv = (flv_hnd_t *)handle;
     flv_buffer *c = p_flv->c;
 
 #define convert_timebase_ms( timestamp, timebase ) (int64_t)((timestamp) * (timebase) * 1000 + 0.5)
@@ -303,7 +303,7 @@ static void rewrite_amf_double( FILE *fp, uint64_t position, double value )
 
 static int close_file( hnd_t handle, int64_t largest_pts, int64_t second_largest_pts )
 {
-    flv_hnd_t *p_flv = handle;
+    flv_hnd_t *p_flv = (flv_hnd_t *)handle;
     flv_buffer *c = p_flv->c;
 
     CHECK( flv_flush_data( c ) );

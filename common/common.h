@@ -26,6 +26,7 @@
 
 #ifndef X264_COMMON_H
 #define X264_COMMON_H
+extern "C" {
 
 /****************************************************************************
  * Macros
@@ -43,7 +44,7 @@
 
 #define CHECKED_MALLOC( var, size )\
 do {\
-    var = x264_malloc( size );\
+    *((void**)&var) = x264_malloc( size );\
     if( !var )\
         goto fail;\
 } while( 0 )
@@ -128,7 +129,8 @@ typedef union { x264_uint128_t i; uint64_t a[2]; uint32_t b[4]; uint16_t c[8]; u
 #define M32(src) (((x264_union32_t*)(src))->i)
 #define M64(src) (((x264_union64_t*)(src))->i)
 #define M128(src) (((x264_union128_t*)(src))->i)
-#define M128_ZERO ((x264_uint128_t){{0,0}})
+static x264_uint128_t m128_zero = {0,0};
+#define M128_ZERO (m128_zero)
 #define CP16(dst,src) M16(dst) = M16(src)
 #define CP32(dst,src) M32(dst) = M32(src)
 #define CP64(dst,src) M64(dst) = M64(src)
@@ -951,6 +953,7 @@ struct x264_t
 #endif
 
 #include "rectangle.h"
+};
 
 #endif
 

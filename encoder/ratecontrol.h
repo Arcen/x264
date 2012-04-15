@@ -26,6 +26,7 @@
 
 #ifndef X264_RATECONTROL_H
 #define X264_RATECONTROL_H
+extern "C" {
 
 /* Completely arbitrary.  Ratecontrol lowers relative quality at higher framerates
  * and the reverse at lower framerates; this serves as the center of the curve.
@@ -63,5 +64,6 @@ int x264_weighted_reference_duplicate( x264_t *h, int i_ref, const x264_weight_t
 void x264_threads_distribute_ratecontrol( x264_t *h );
 void x264_threads_merge_ratecontrol( x264_t *h );
 void x264_hrd_fullness( x264_t *h );
+};
 #endif
 

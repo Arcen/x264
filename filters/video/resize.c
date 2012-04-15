@@ -27,7 +27,7 @@
 #define NAME "resize"
 #define FAIL_IF_ERROR( cond, ... ) FAIL_IF_ERR( cond, NAME, __VA_ARGS__ )
 
-cli_vid_filter_t resize_filter;
+extern cli_vid_filter_t resize_filter;
 
 static int full_check( video_info_t *info, x264_param_t *param )
 {

@@ -856,7 +856,7 @@ static void x264_macroblock_tree_propagate( x264_t *h, x264_frame_t **frames, fl
     int i_bipred_weight = h->param.analyse.b_weighted_bipred ? 64 - (dist_scale_factor>>2) : 32;
     int16_t (*mvs[2])[2] = { frames[b]->lowres_mvs[0][b-p0-1], frames[b]->lowres_mvs[1][p1-b-1] };
     int bipred_weights[2] = {i_bipred_weight, 64 - i_bipred_weight};
-    int *buf = h->scratch_buffer;
+    int *buf = (int*)h->scratch_buffer;
     uint16_t *propagate_cost = frames[b]->i_propagate_cost;
 
     x264_emms();

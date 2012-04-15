@@ -28,6 +28,7 @@
 #ifndef X264_MACROBLOCK_H
 #define X264_MACROBLOCK_H
 
+extern "C" {
 enum macroblock_position_e
 {
     MB_LEFT     = 0x01,
@@ -439,6 +440,8 @@ static ALWAYS_INLINE int x264_mb_transform_8x8_allowed( x264_t *h )
         return partition_tab[h->mb.i_type];
     return M32( h->mb.i_sub_partition ) == D_L0_8x8*0x01010101;
 }
+
+};
 
 #endif
 
